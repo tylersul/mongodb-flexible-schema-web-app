@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MongoDB POV</title>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous"> 
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/stylesheets/main.css">
+        <!-- Animate.css -->
+        <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css"/>
+        <!-- Animate on Scroll -->
+        <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+        <script src="https://kit.fontawesome.com/175e0bfa97.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    </head>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top shadow mb-2">
+        <a class="navbar-brand" href="/"><i class="fas fa-dna"></i><strong>mongodb pov</strong></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/players">Packages</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <% if(!currentUser){ %>
+                <li class="nav-item">
+                    <a href="/login" class="nav-link">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/register" class="nav-link">Sign Up</a>
+                </li>
+                <% } else if (currentUser && currentUser.isAdmin) { %>
+                <li class="nav-item">
+                    <i class="far fa-id-badge nav-link id"></i>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><%= currentUser.username %></a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="/users/<%=currentUser._id%>"><i class="far fa-id-card mr-2 cardinal-icon"></i>Profile</a>
+                        <a class="dropdown-item" href="#"><i class="far fa-comment-alt mr-2 cardinal-icon"></i>Notifications</a>
+                        <a class="dropdown-item" href="#"><i class="far fa-heart mr-2 cardinal-icon"></i>Favorites</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/logout">Log Out: <%= currentUser.username %></a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin" class="nav-link">Admin Tools</a>
+                </li>
+                <% } else if (currentUser) { %>
+                <li class="nav-item">
+                    <i class="far fa-id-badge nav-link id"></i>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><%= currentUser.username %></a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="/users/<%=currentUser._id%>"><i class="far fa-id-card mr-2 cardinal-icon"></i>Profile</a>
+                        <a class="dropdown-item" href="#"><i class="far fa-comment-alt mr-2 cardinal-icon"></i>Notifications</a>
+                        <a class="dropdown-item" href="#"><i class="far fa-heart mr-2 cardinal-icon"></i>Favorites</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/logout">Log Out: <%= currentUser.username %></a>
+                    </div>
+                </li>
+                <% } %>
+            </ul>
+        </div>
+    </nav>
+    <body class="flex-fill" style="padding-top: 100px;">
+    <%# can be empty so must ensure it's > 0 %>
+    <% if(error && error.length > 0){ %>
+    <div class="container mb-2">
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+    </div>
+    <% } %>
+    <% if(success && success.length > 0){ %>
+    <div class="container mb-2">
+        <div class="alert alert-success" role="alert">
+            <%= success %>
+        </div>
+    </div>
+    <% } %>
+
+
+ <div class="container mt-3">
+     <header class="jumbotron shadow fade-in">
+         <div class="container">
+             <h1>UPS Package Tracker </h1>
+             <p>View package database:</p>
+             <p>
+                 <form action="/players" method="GET" class="form-inline">
+                     <div class="form-group">
+                         <input type="text" name="search" placeholder="Package Search..." class="form-control">
+                         <input type="submit" value="Search" class="btn btn-outline-secondary ml-2">
+                     </div>
+                 </form>
+             </p>
+             <p>
+                <a class="btn btn-primary btn-large grow mr-3" href="/package/new">Add New Package</a>
+                <a class="btn btn-primary btn-large grow" href="/package/update">Add Updated Package</a>
+             </p>
+             <p>
+                
+             </p>
+         </div>
+     </header>
+    <div class="row text-center">
+        <% packages.forEach(function(package){ %>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card shadow cyclone-card fade-in" data-aos="fade-up">
+                    <div class="card-body" id="playerCardBody">
+                        <h5>Package:</h5>
+                        <p class="card-title"><strong>TRACKING:</strong> <%= package.id %></p>
+                        <p class="card-title"><strong>RFID:</strong> <%= package.rfid %></p>
+                        <p class="card-title"><strong>STATUS:</strong> <%= package.status %></p>
+                        <% if(package.live){ %>
+                        <h5 class="card-title">LIVE: <%= package.live %></h5>
+                        <% } %>
+                        <a href="/players/<%= package._id %>" class="btn btn-secondary">More Info</a>
+                    </div>
+                </div>  
+            </div>
+        <% }); %>
+    </div>
+</div>
+
+<% if (currentUser && currentUser.isAdmin) { %>
+    <div class="container mb-2">
+        <div class="alert alert-danger">
+            Admin View
+        </div>
+    </div>
+    <% } %>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <!-- Typed.js -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
+    <!-- CountUp -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/countup.js/1.8.2/countUp.min.js'></script>
+    <!-- AOS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+</body>
+</html>
+<script>
+    AOS.init();
+</script>
